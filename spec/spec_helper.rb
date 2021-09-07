@@ -5,7 +5,8 @@ SimpleCov.start do
   add_filter(%r{\/spec\/})
 end
 
-require_relative '../account'
+require_relative '../src/account/account'
+require_relative '../src/console'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
