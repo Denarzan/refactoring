@@ -13,10 +13,9 @@ class MoneyOperations
   end
 
   def withdraw_money_operation
-    return unless card_exist?
+    return unless card_exist?(@account)
 
-    show_cards(@account, 'card.withdraw.chose', 'card.show_cards', 'card.exit')
-    card = take_card_number(@account)
+    card = show_cards(@account, 'card.withdraw.chose', 'card.show_cards', 'card.exit')
     return if card.nil?
 
     amount = withdraw_amount(card)
@@ -26,10 +25,9 @@ class MoneyOperations
   end
 
   def put_money_operation
-    return unless card_exist?
+    return unless card_exist?(@account)
 
-    show_cards(@account, 'card.put_money.chose', 'card.show_cards', 'card.exit')
-    card = take_card_number(@account)
+    card = show_cards(@account, 'card.put_money.chose', 'card.show_cards', 'card.exit')
     return if card.nil?
 
     amount = put_money_amount(card)
@@ -39,10 +37,9 @@ class MoneyOperations
   end
 
   def send_money_operation
-    return unless card_exist?
+    return unless card_exist?(@account)
 
-    show_cards(@account, 'card.send_money.chose', 'card.show_cards', 'card.exit')
-    sender_card = take_card_number(@account)
+    sender_card = show_cards(@account, 'card.send_money.chose', 'card.show_cards', 'card.exit')
     return if sender_card.nil?
 
     recipient_card = find_recipient_card
@@ -54,28 +51,30 @@ class MoneyOperations
     send_money(recipient_card, sender_card, amount)
   end
 
+  private
+
   def withdraw_money(card, amount)
-    card.withdraw_money(amount)
+    card.withdraw_money(amount.to_i)
     @storage.save_accounts
     puts I18n.t('card.withdraw.success', amount: amount, card: card.number,
-                                         withdraw_money: card.balance, tax: card.withdraw_tax(amount))
+                                         money_left: card.balance, tax: card.withdraw_tax(amount.to_i))
   end
 
   def put_money(card, amount)
-    card.put_money(amount)
+    card.put_money(amount.to_i)
     @storage.save_accounts
     puts I18n.t('card.put_money.success', amount: amount, card_number: card.number,
-                                          balance: card.balance, tax: card.put_tax(amount))
+                                          balance: card.balance, tax: card.put_tax(amount.to_i))
   end
 
   def send_money(recipient_card, sender_card, amount)
-    sender_card.send_money(amount)
-    recipient_card.put_money(amount)
+    sender_card.send_money(amount.to_i)
+    recipient_card.put_money(amount.to_i)
     @storage.save_accounts
     puts I18n.t('card.send_money.success', amount: amount, card_number: recipient_card.number,
-                                           balance: sender_card.balance, tax: sender_card.sender_tax(amount))
+                                           balance: sender_card.balance, tax: sender_card.sender_tax(amount.to_i))
     puts I18n.t('card.send_money.success', amount: amount, card_number: recipient_card.number,
-                                           balance: recipient_card.balance, tax: recipient_card.put_tax(amount))
+                                           balance: recipient_card.balance, tax: recipient_card.put_tax(amount.to_i))
   end
 
   def withdraw_amount(card)
@@ -90,25 +89,27 @@ class MoneyOperations
 
   def send_money_amount(recipient_card, sender_card)
     amount = get_input(I18n.t('card.withdraw.amount'))
-    can_send?(recipient_card, sender_card, amount)
+    send_money_amount(recipient_card, sender_card) unless can_send?(recipient_card, sender_card, amount)
+
+    amount
   end
 
   def money_enough_for_withdraw?(card, amount)
-    return true if card.withdraw_money?(amount)
+    return true if card.withdraw_money?(amount.to_i)
 
     puts I18n.t('card.withdraw.not_enough')
     false
   end
 
   def money_enough_for_put?(card, amount)
-    return true if card.put_money?(amount)
+    return true if card.put_money?(amount.to_i)
 
-    puts I18n.t('card.put_money.not_enough')
+    puts I18n.t('card.put_money.no_enough')
     false
   end
 
   def money_enough_for_send?(card, amount)
-    return true if card.send_money?(amount)
+    return true if card.send_money?(amount.to_i)
 
     puts I18n.t('card.send_money.no_money')
     false
@@ -129,10 +130,11 @@ class MoneyOperations
   def find_recipient_card
     card_number = get_input(I18n.t('card.send_money.recipient_card'))
     if card_number.length == 16
-      found_card = @storage.accounts.map(&:card).detect { |card| card.number == card_number }
+      found_card = @storage.accounts.map(&:cards).flatten.detect { |card| card.number == card_number }
       return found_card unless found_card.nil?
 
       puts I18n.t('card.send_money.no_card', card_number: card_number)
+      find_recipient_card
     else puts I18n.t('card.send_money.incorrect_number')
     end
   end

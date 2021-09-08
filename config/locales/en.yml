@@ -1,9 +1,9 @@
 en:
-  console: "
+  console: |
     Hello, we are RubyG bank!
     - If you want to create account - press `create`
     - If you want to load account - press `load`
-    - If you want to exit - press `exit` "
+    - If you want to exit - press `exit`
   registration:
     name: 'Enter your name'
     login: 'Enter your login'
@@ -27,34 +27,31 @@ en:
     password: 'Enter your password'
     error: 'There is no account with given credentials'
   menu:
-    start: |
-      \nWelcome, %{name}
-      If you want to:
-      - show all cards - press SC
-      - create card - press CC
-      - destroy card - press DC
-      - put money on card - press PM
-      - withdraw money on card - press WM
-      - send money to another card  - press SM
-      - destroy account - press `DA`
-      - exit from account - press `exit`
+    start: "
+      \nWelcome, %{name}\n
+      If you want to:\n
+      - show all cards - press SC\n
+      - create card - press CC\n
+      - destroy card - press DC\n
+      - put money on card - press PM\n
+      - withdraw money on card - press WM\n
+      - send money to another card  - press SM\n
+      - destroy account - press `DA`\n
+      - exit from account - press `exit`\n"
     wrong_command: "Wrong command. Try again!\n"
   card:
     create: |
       You could create one of 3 card types
-      - Usual card. 2% tax on card INCOME. 20$ tax on SENDING money from this card. 5% tax on WITHDRAWING money.
-      For creation this card - press `usual`
-      - Capitalist card. 10$ tax on card INCOME. 10% tax on SENDING money from this card. 4$ tax on WITHDRAWING money.
-      For creation this card - press `capitalist`
-      - Virtual card. 1$ tax on card INCOME. 1$ tax on SENDING money from this card. 12% tax on WITHDRAWING money.
-      For creation this card - press `virtual`
+      - Usual card. 2% tax on card INCOME. 20$ tax on SENDING money from this card. 5% tax on WITHDRAWING money. For creation this card - press `usual`
+      - Capitalist card. 10$ tax on card INCOME. 10% tax on SENDING money from this card. 4$ tax on WITHDRAWING money. For creation this card - press `capitalist`
+      - Virtual card. 1$ tax on card INCOME. 1$ tax on SENDING money from this card. 12% tax on WITHDRAWING money. For creation this card - press `virtual`
       - For exit - press `exit`
     wrong_type: "Wrong card type. Try again!\n"
     no_cards: "There is no active cards!\n"
     show_cards: "- %{card_number}, %{card_type}, press %{index}"
     exit: "press `exit` to exit\n"
     wrong: "You entered wrong number!\n"
-    incorrect: 'You must input correct amount of $'
+    incorrect: 'You must input correct amount of money'
     delete:
       offer: 'If you want to delete:'
       sure?: "Are you sure you want to delete %{card}?[y/n]"

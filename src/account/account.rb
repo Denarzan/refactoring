@@ -1,7 +1,3 @@
-require 'yaml'
-require 'pry'
-require_relative '../console'
-
 class Account
   attr_accessor :login, :name, :cards, :password
 
@@ -18,11 +14,10 @@ class Account
   end
 
   def find_card(index)
-    @cards[index - 1] if index.to_i != 0 && index.between?(1, @cards.length)
+    @cards[index.to_i - 1] if index.to_i != 0 && index.to_i.between?(1, @cards.length)
   end
 
-  def remove_card(index)
-    @cards.delete_at(index - 1)
+  def remove_card(card)
+    @cards.delete(card)
   end
-
 end

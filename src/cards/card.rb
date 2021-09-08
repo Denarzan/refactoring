@@ -1,8 +1,10 @@
 class Card
-  def initialize(type, balance: 0)
+  attr_reader :type, :balance, :number
+
+  def initialize(type, balance = 0)
     @type = type
-    @number = 16.times.map { rand(10) }.join
     @balance = balance
+    @number = 16.times.map { rand(10) }.join
   end
 
   def withdraw_money(amount)

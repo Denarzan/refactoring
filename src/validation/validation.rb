@@ -1,9 +1,9 @@
 require 'i18n'
 
 class AccountValidation
-
-  def initialize
+  def initialize(storage)
     @errors = []
+    @storage = storage
   end
 
   def validate_name(name)
@@ -16,11 +16,11 @@ class AccountValidation
     @errors.push(I18n.t('errors.login.present')) if login.empty?
     @errors.push(I18n.t('errors.login.be_longer')) if login.length < 4
     @errors.push(I18n.t('errors.login.be_shorter')) if login.length > 20
-    @errors.push(I18n.t('errors.login.exists')) if accounts.map(&:login).include? login
+    @errors.push(I18n.t('errors.login.exists')) if @storage.accounts.map(&:login).include? login
   end
 
   def validate_age(age)
-    @errors.push(I18n.t('errors.age')) unless age.to_i.is_a?(Integer) || age.between?(23, 90)
+    @errors.push(I18n.t('errors.age')) unless age.to_i.between?(23, 90)
   end
 
   def validate_password(password)

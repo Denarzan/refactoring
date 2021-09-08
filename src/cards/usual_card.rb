@@ -3,7 +3,7 @@ class UsualCard < Card
   attr_reader :type, :number
   attr_accessor :balance
 
-  def initialize(balance: 50.00)
+  def initialize(balance = 50.00)
     super('usual', balance)
   end
 

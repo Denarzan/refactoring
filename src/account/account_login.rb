@@ -3,22 +3,21 @@ class AccountLogin
   include Input
   def initialize(storage)
     @storage = storage
-    sign_in
   end
 
   def sign_in
-    if @storage.accounts.find_account?(*credentials)
-      @accounts.select { |a| login == a.login }.first
+    data = credentials
+    if @storage.find_account?(data[:login], data[:password])
+      @storage.accounts.detect { |a| data[:login] == a.login && data[:password] == a.password }
     else
       puts I18n.t('sign_in.error')
       sign_in
     end
-
   end
 
   def credentials
     login = get_input(I18n.t('sign_in.login'))
     password = get_input(I18n.t('sign_in.password'))
-    [login, password]
+    { login: login, password: password }
   end
 end

@@ -3,7 +3,7 @@ class VirtualCard < Card
   attr_reader :type, :number
   attr_accessor :balance
 
-  def initialize(balance: 150.00)
+  def initialize(balance = 150.00)
     super('virtual', balance)
   end
 

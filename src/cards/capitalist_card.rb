@@ -3,7 +3,7 @@ class CapitalistCard < Card
   attr_reader :type, :number
   attr_accessor :balance
 
-  def initialize(balance: 100.00)
+  def initialize(balance = 100.00)
     super('capitalist', balance)
   end
 

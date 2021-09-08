@@ -1,14 +1,16 @@
 require 'yaml'
 class Storage
+  FILE = 'accounts.yml'.freeze
+  attr_accessor :accounts
 
   def initialize
     @accounts = load_storage_file
   end
 
   def load_storage_file
-    return [] unless File.exist?('accounts.yml')
+    return [] unless File.exist?(FILE)
 
-    YAML.load_file('accounts.yml')
+    YAML.load_file(FILE) || []
   end
 
   def add_account(account)
@@ -17,7 +19,7 @@ class Storage
   end
 
   def save_accounts
-    File.open('accounts.yml', 'w') { |f| f.write @accounts.to_yaml }
+    File.open(FILE, 'w') { |f| f.write @accounts.to_yaml }
   end
 
   def find_account?(login, password)
