@@ -96,6 +96,7 @@ RSpec.describe Console do
   let(:card_operations) { CardOperations.new(storage, account) }
   let(:money_operations) { MoneyOperations.new(storage, account) }
   let(:account_registration) { AccountRegistration.new(storage) }
+  let(:view) { View }
 
   before do
     stub_const('Storage::FILE', OVERRIDABLE_FILENAME)
@@ -108,24 +109,24 @@ RSpec.describe Console do
       end
 
       it 'create account if input is create' do
-        allow(current_subject).to receive_message_chain(:gets, :chomp) { 'create' }
+        allow($stdin).to receive_message_chain(:gets, :chomp) { 'create' }
         expect(current_subject).to receive(:create)
       end
 
       it 'load account if input is load' do
-        allow(current_subject).to receive_message_chain(:gets, :chomp) { 'load' }
+        allow($stdin).to receive_message_chain(:gets, :chomp) { 'load' }
         expect(current_subject).to receive(:load)
       end
 
       it 'leave app if input is exit or some another word' do
-        allow(current_subject).to receive_message_chain(:gets, :chomp) { 'another' }
+        allow($stdin).to receive_message_chain(:gets, :chomp) { 'another' }
         expect(current_subject).to receive(:exit)
       end
     end
 
     context 'with correct outout' do
       it do
-        allow(current_subject).to receive_message_chain(:gets, :chomp) { 'test' }
+        allow($stdin).to receive_message_chain(:gets, :chomp) { 'test' }
         allow(current_subject).to receive(:exit)
         HELLO_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
         current_subject.console
@@ -142,7 +143,7 @@ RSpec.describe Console do
 
     context 'with success result' do
       before do
-        allow_any_instance_of(AccountRegistration).to receive_message_chain(:gets, :chomp).and_return(*success_inputs)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*success_inputs)
         allow(current_subject).to receive(:main_menu)
         allow(storage).to receive(:accounts).and_return([])
       end
@@ -153,9 +154,9 @@ RSpec.describe Console do
 
       it 'with correct outout' do
         allow(File).to receive(:open)
-        ASK_PHRASES.each_value { |phrase| expect_any_instance_of(AccountRegistration).to receive(:puts).with(phrase) }
+        ASK_PHRASES.each_value { |phrase| expect(view).to receive(:puts).with(phrase) }
         ACCOUNT_VALIDATION_PHRASES.values.map(&:values).each do |phrase|
-          expect(current_subject).not_to receive(:puts).with(phrase)
+          expect(view).not_to receive(:puts).with(phrase)
         end
         current_subject.create
       end
@@ -175,7 +176,7 @@ RSpec.describe Console do
       before do
         all_inputs = current_inputs + success_inputs
         allow(File).to receive(:open)
-        allow_any_instance_of(AccountRegistration).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
         allow(current_subject).to receive(:main_menu)
         allow(storage).to receive(:accounts).and_return([])
       end
@@ -287,7 +288,7 @@ RSpec.describe Console do
       let(:age) { 1 }
 
       before do
-        allow_any_instance_of(AccountLogin).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
         allow(storage).to receive(:accounts) { [Account.new(name, login, password, age)] }
         current_subject.instance_variable_set(:@storage, storage)
         storage.instance_variable_set(:@accounts, [Account.new(name, login, password, age)])
@@ -299,7 +300,7 @@ RSpec.describe Console do
         it do
           expect(current_subject).to receive(:main_menu)
           [ASK_PHRASES[:login], ASK_PHRASES[:password]].each do |phrase|
-            expect_any_instance_of(AccountLogin).to receive(:puts).with(phrase)
+            expect(view).to receive(:puts).with(phrase)
           end
           current_subject.load
         end
@@ -330,19 +331,19 @@ RSpec.describe Console do
     let(:success_input) { 'y' }
 
     it 'with correct outout' do
-      expect(current_subject).to receive_message_chain(:gets, :chomp) {}
+      expect($stdin).to receive_message_chain(:gets, :chomp) {}
       expect(current_subject).to receive(:console)
       expect { current_subject.create_the_first_account }.to output(COMMON_PHRASES[:create_first_account]).to_stdout
     end
 
     it 'calls create if user inputs is y' do
-      expect(current_subject).to receive_message_chain(:gets, :chomp) { success_input }
+      expect($stdin).to receive_message_chain(:gets, :chomp) { success_input }
       expect(current_subject).to receive(:create)
       current_subject.create_the_first_account
     end
 
     it 'calls console if user inputs is not y' do
-      expect(current_subject).to receive_message_chain(:gets, :chomp) { cancel_input }
+      expect($stdin).to receive_message_chain(:gets, :chomp) { cancel_input }
       expect(current_subject).to receive(:console)
       current_subject.create_the_first_account
     end
@@ -368,11 +369,11 @@ RSpec.describe Console do
         allow(current_subject).to receive(:show_cards)
         allow(current_subject).to receive(:exit)
         allow(current_subject).to receive(:loop).and_yield
-        allow(current_subject).to receive_message_chain(:gets, :chomp).and_return('SC', 'exit')
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('SC', 'exit')
         current_subject.instance_variable_set(:@current_account, instance_double('Account', name: name))
         expect { current_subject.main_menu }.to output(/Welcome, #{name}/).to_stdout
         MAIN_OPERATIONS_TEXTS.each do |text|
-          allow(current_subject).to receive_message_chain(:gets, :chomp).and_return('SC', 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return('SC', 'exit')
           expect { current_subject.main_menu }.to output(/#{text}/).to_stdout
         end
       end
@@ -388,7 +389,7 @@ RSpec.describe Console do
 
         commands.each do |command, method_name|
           expect(current_subject).to receive(method_name)
-          allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(command, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(command, 'exit')
           current_subject.main_menu
         end
       end
@@ -397,7 +398,7 @@ RSpec.describe Console do
         current_subject.instance_variable_set(:@current_account, instance_double('Account', name: name))
         allow(current_subject).to receive(:loop).and_yield.and_yield
         expect(current_subject).to receive(:exit)
-        allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(undefined_command, 'exit')
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(undefined_command, 'exit')
         expect { current_subject.main_menu }.to output(/#{ERROR_PHRASES[:wrong_command]}/).to_stdout
       end
     end
@@ -423,13 +424,13 @@ RSpec.describe Console do
     end
 
     it 'with correct outout' do
-      expect(current_subject).to receive_message_chain(:gets, :chomp) {}
+      expect($stdin).to receive_message_chain(:gets, :chomp) {}
       expect { current_subject.destroy_account }.to output(COMMON_PHRASES[:destroy_account]).to_stdout
     end
 
     context 'when deleting' do
       it 'deletes account if user inputs is y' do
-        expect(current_subject).to receive_message_chain(:gets, :chomp) { success_input }
+        expect($stdin).to receive_message_chain(:gets, :chomp) { success_input }
         storage.instance_variable_set(:@accounts, accounts)
         current_subject.instance_variable_set(:@storage, storage)
         current_subject.instance_variable_set(:@current_account, correct_account)
@@ -443,7 +444,7 @@ RSpec.describe Console do
       end
 
       it 'doesnt delete account' do
-        expect(current_subject).to receive_message_chain(:gets, :chomp) { cancel_input }
+        expect($stdin).to receive_message_chain(:gets, :chomp) { cancel_input }
 
         current_subject.destroy_account
 
@@ -458,14 +459,14 @@ RSpec.describe Console do
     it 'display cards if there are any' do
       card_operations.instance_variable_set(:@account, instance_double('Account', cards: cards))
       current_subject.instance_variable_set(:@card_operations, card_operations)
-      cards.each { |card| expect(card_operations).to receive(:puts).with("- #{card.number}, #{card.type}") }
+      cards.each { |card| expect(view).to receive(:puts).with("- #{card.number}, #{card.type}") }
       current_subject.show_cards
     end
 
     it 'outputs error if there are no active cards' do
       card_operations.instance_variable_set(:@account, instance_double('Account', cards: []))
       current_subject.instance_variable_set(:@card_operations, card_operations)
-      expect(card_operations).to receive(:puts).with(ERROR_PHRASES[:no_active_cards])
+      expect(view).to receive(:puts).with(ERROR_PHRASES[:no_active_cards])
       current_subject.show_cards
     end
   end
@@ -483,7 +484,7 @@ RSpec.describe Console do
         allow(File).to receive(:open)
         allow(test_account).to receive(:add_card)
 
-        expect(card_operations).to receive_message_chain(:gets, :chomp) { 'usual' }
+        expect($stdin).to receive_message_chain(:gets, :chomp) { 'usual' }
 
         current_subject.create_card
       end
@@ -506,7 +507,7 @@ RSpec.describe Console do
 
       CARDS.each do |card_type, card_info|
         it "create card with #{card_type} type" do
-          expect(card_operations).to receive_message_chain(:gets, :chomp) { card_info[:type] }
+          expect($stdin).to receive_message_chain(:gets, :chomp) { card_info[:type] }
 
           current_subject.create_card
 
@@ -527,7 +528,7 @@ RSpec.describe Console do
         current_subject.instance_variable_set(:@card_operations, card_operations)
         allow(File).to receive(:open)
         allow(storage).to receive(:accounts).and_return([])
-        allow(card_operations).to receive_message_chain(:gets, :chomp).and_return('test', 'usual')
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('test', 'usual')
 
         expect { current_subject.create_card }.to output(/#{ERROR_PHRASES[:wrong_card_type]}/).to_stdout
       end
@@ -557,13 +558,12 @@ RSpec.describe Console do
         it do
           allow(account).to receive(:cards) { fake_cards }
           current_subject.instance_variable_set(:@account, account)
-          allow(card_operations).to receive_message_chain(:gets, :chomp).and_return('exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return('exit')
           expect { current_subject.destroy_card }.to output(/#{COMMON_PHRASES[:if_you_want_to_delete]}/).to_stdout
           fake_cards.each_with_index do |card, i|
             message = /- #{card.number}, #{card.type}, press #{i + 1}/
             expect { current_subject.destroy_card }.to output(message).to_stdout
           end
-          current_subject.destroy_card
         end
       end
 
@@ -571,7 +571,7 @@ RSpec.describe Console do
         it do
           allow(account).to receive(:cards) { fake_cards }
           current_subject.instance_variable_set(:@account, account)
-          expect(card_operations).to receive_message_chain(:gets, :chomp) { 'exit' }
+          expect($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.destroy_card
         end
       end
@@ -583,12 +583,12 @@ RSpec.describe Console do
         end
 
         it do
-          allow(card_operations).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
           expect { current_subject.destroy_card }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
 
         it do
-          allow(card_operations).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
           expect { current_subject.destroy_card }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
       end
@@ -611,7 +611,7 @@ RSpec.describe Console do
 
         it 'accept deleting' do
           commands = [deletable_card_number, accept_for_deleting]
-          allow(card_operations).to receive_message_chain(:gets, :chomp).and_return(*commands)
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*commands)
 
           expect { current_subject.destroy_card }.to change { current_subject.current_account.cards.size }.by(-1)
 
@@ -622,7 +622,7 @@ RSpec.describe Console do
 
         it 'decline deleting' do
           commands = [deletable_card_number, reject_for_deleting]
-          allow(card_operations).to receive_message_chain(:gets, :chomp).and_return(*commands)
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*commands)
 
           expect { current_subject.destroy_card }.not_to change(current_subject.current_account.cards, :size)
         end
@@ -653,7 +653,7 @@ RSpec.describe Console do
 
       context 'with correct outout' do
         it do
-          allow(money_operations).to receive_message_chain(:gets, :chomp) { 'exit' }
+          allow($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.put_money }.to output(/#{COMMON_PHRASES[:choose_card]}/).to_stdout
           fake_cards.each_with_index do |card, i|
             message = /- #{card.number}, #{card.type}, press #{i + 1}/
@@ -667,7 +667,7 @@ RSpec.describe Console do
         it do
           allow(account).to receive(:cards) { fake_cards }
           current_subject.instance_variable_set(:@current_account, account)
-          expect(money_operations).to receive_message_chain(:gets, :chomp) { 'exit' }
+          expect($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.put_money
         end
       end
@@ -681,12 +681,12 @@ RSpec.describe Console do
         end
 
         it do
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
           expect { current_subject.put_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
 
         it do
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
           expect { current_subject.put_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
       end
@@ -704,7 +704,7 @@ RSpec.describe Console do
         before do
           account.instance_variable_set(:@cards, fake_cards)
           current_subject.instance_variable_set(:@current_account, account)
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(*commands)
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*commands)
         end
 
         context 'with correct output' do
@@ -749,7 +749,7 @@ RSpec.describe Console do
 
             it do
               custom_cards.each do |custom_card|
-                allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(*commands)
+                allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*commands)
                 storage.instance_variable_set(:@accounts, [account])
                 current_subject.instance_variable_set(:@storage, storage)
                 account.instance_variable_set(:@cards, [custom_card, card_one, card_two])
@@ -789,7 +789,7 @@ RSpec.describe Console do
         it do
           allow(account).to receive(:cards) { fake_cards }
           current_subject.instance_variable_set(:@current_account, account)
-          allow(money_operations).to receive_message_chain(:gets, :chomp) { 'exit' }
+          allow($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.instance_variable_set(:@money_operations, money_operations)
           expect { current_subject.withdraw_money }.to output(/#{COMMON_PHRASES[:choose_card_withdrawing]}/).to_stdout
           fake_cards.each_with_index do |card, i|
@@ -805,7 +805,7 @@ RSpec.describe Console do
           allow(account).to receive(:cards) { fake_cards }
           current_subject.instance_variable_set(:@current_account, account)
           current_subject.instance_variable_set(:@money_operations, money_operations)
-          expect(money_operations).to receive_message_chain(:gets, :chomp) { 'exit' }
+          expect($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.withdraw_money
         end
       end
@@ -818,12 +818,12 @@ RSpec.describe Console do
         end
 
         it do
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
           expect { current_subject.withdraw_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
 
         it do
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
           expect { current_subject.withdraw_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
       end
@@ -842,7 +842,7 @@ RSpec.describe Console do
           account.instance_variable_set(:@cards, fake_cards)
           current_subject.instance_variable_set(:@current_account, account)
           current_subject.instance_variable_set(:@money_operations, money_operations)
-          allow(money_operations).to receive_message_chain(:gets, :chomp).and_return(*commands)
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*commands)
         end
 
         context 'with correct output' do

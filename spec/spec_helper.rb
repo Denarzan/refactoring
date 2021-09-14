@@ -5,11 +5,7 @@ SimpleCov.start do
   add_filter(%r{/spec/})
 end
 
-require_relative '../src/account/account'
-require_relative '../src/console/console'
-
-I18n.load_path << Dir["#{File.expand_path('../config/locales', __dir__)}/*.yml"]
-I18n.default_locale = :en
+require_relative '../src/require_files'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

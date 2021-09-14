@@ -1,4 +1,3 @@
-require_relative '../help_methods/input'
 class AccountLogin
   include Input
   def initialize(storage)
@@ -10,14 +9,16 @@ class AccountLogin
     if @storage.find_account?(data[:login], data[:password])
       @storage.accounts.detect { |a| data[:login] == a.login && data[:password] == a.password }
     else
-      puts I18n.t('sign_in.error')
+      View.sign_in_error
       sign_in
     end
   end
 
   def credentials
-    login = get_input(I18n.t('sign_in.login'))
-    password = get_input(I18n.t('sign_in.password'))
+    View.sign_in_login
+    login = fetch_input
+    View.sign_in_password
+    password = fetch_input
     { login: login, password: password }
   end
 end

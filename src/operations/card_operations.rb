@@ -20,7 +20,7 @@ class CardOperations
   def create_card_operation
     loop do
       multiline_output('card.create')
-      card_type = get_input
+      card_type = fetch_input
       return if card_type == 'exit'
 
       create_card?(card_type) ? break : next
@@ -39,14 +39,15 @@ class CardOperations
     return unless card_exist?(@account)
 
     @account.cards.each do |card|
-      puts "- #{card.number}, #{card.type}"
+      View.show_card(card.number, card.type)
     end
   end
 
   private
 
   def sure_to_delete_card?(card)
-    get_input(I18n.t('card.delete.sure?', card: card.number)) == 'y'
+    View.card_delete(card.number)
+    fetch_input == 'y'
   end
 
   def delete_card(index)
@@ -71,7 +72,7 @@ class CardOperations
       @storage.save_accounts
       true
     else
-      puts I18n.t('card.wrong_type')
+      View.card_wrong_type
       false
     end
   end

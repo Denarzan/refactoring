@@ -1,6 +1,3 @@
-require_relative '../help_methods/input'
-require_relative '../validation/validation'
-require 'i18n'
 class AccountRegistration
   include Input
 
@@ -20,25 +17,29 @@ class AccountRegistration
   private
 
   def name_input
-    name = get_input(I18n.t('registration.name'))
+    View.registration_name
+    name = fetch_input
     @validator.validate_name(name)
     name
   end
 
   def login_input
-    login = get_input(I18n.t('registration.login'))
+    View.registration_login
+    login = fetch_input
     @validator.validate_login(login)
     login
   end
 
   def age_input
-    age = get_input(I18n.t('registration.age'))
+    View.registration_age
+    age = fetch_input
     @validator.validate_age(age)
     age
   end
 
   def password_input
-    password = get_input(I18n.t('registration.password'))
+    View.registration_password
+    password = fetch_input
     @validator.validate_password(password)
     password
   end

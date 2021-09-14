@@ -5,12 +5,12 @@ module HelpOperations
   private
 
   def take_card_number(account)
-    input = get_input
+    input = fetch_input
     return if input == 'exit'
 
     card = account.find_card(input)
     if card.nil?
-      puts I18n.t('card.wrong')
+      View.card_wrong
       take_card_number(account)
     end
     card
@@ -19,19 +19,19 @@ module HelpOperations
   def show_cards(account, first_message, second_message, exit_message)
     return unless card_exist?(account)
 
-    puts I18n.t(first_message)
+    View.puts_message(first_message)
 
     account.cards.each_with_index do |card, index|
-      puts I18n.t(second_message, card_number: card.number, card_type: card.type, index: index + 1)
+      View.puts_cards(second_message, card, index)
     end
-    puts I18n.t(exit_message)
+    View.puts_message(exit_message)
     take_card_number(@account)
   end
 
   def card_exist?(account)
     return true if account.cards.any?
 
-    puts I18n.t('card.no_cards')
+    View.no_cards
     false
   end
 end

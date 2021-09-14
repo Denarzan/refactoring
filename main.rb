@@ -1,2 +1,2 @@
-require_relative 'require_files'
+require_relative 'src/require_files'
 Console.new.console

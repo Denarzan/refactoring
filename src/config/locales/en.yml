@@ -70,6 +70,6 @@ en:
       recipient_card: 'Enter the recipient card:'
       incorrect_number: 'Please, input correct number of card'
       no_card: "There is no card with number %{card_number}\n"
-      no_money: "You don't have enough money on card for such operation"
+      no_enough: "You don't have enough money on card for such operation"
       success: "Money %{amount}$ was put on %{card_number}. Balance: %{balance}. Tax: %{tax}$\n"
   delete_account: 'Are you sure you want to destroy account?[y/n]'

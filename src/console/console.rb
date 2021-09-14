@@ -30,7 +30,7 @@ class Console
 
   def console
     multiline_output('console')
-    case get_input
+    case fetch_input
     when 'create' then create
     when 'load' then load
     else exit
@@ -57,12 +57,12 @@ class Console
 
   def main_menu
     loop do
-      puts(I18n.t('menu.start', name: @current_account.name))
-      command = get_input
+      View.menu_start(@current_account.name)
+      command = fetch_input
       if COMMANDS.include?(command)
         send(COMMANDS[command])
       else
-        puts I18n.t('menu.wrong_command')
+        View.menu_wrong_command
       end
     end
   end
@@ -84,7 +84,8 @@ class Console
   end
 
   def destroy_account
-    answer = get_input(I18n.t('delete_account'))
+    View.delete_account
+    answer = fetch_input
     @storage.delete_account(@current_account) if answer == 'y'
     exit
   end
@@ -98,7 +99,8 @@ class Console
   end
 
   def create_the_first_account
-    get_input(I18n.t('registration.no_active_accounts')) == 'y' ? create : console
+    View.no_active_accounts
+    fetch_input == 'y' ? create : console
   end
 
   private
