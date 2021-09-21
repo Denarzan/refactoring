@@ -6,6 +6,7 @@ SimpleCov.start do
 end
 
 require_relative '../src/require_files'
+require_relative 'helper'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

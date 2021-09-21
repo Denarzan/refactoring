@@ -1,3 +1,4 @@
+
 OVERRIDABLE_FILENAME = 'spec/fixtures/accounts.yml'.freeze
 
 COMMON_PHRASES = {
@@ -89,83 +90,87 @@ CARDS = {
   }
 }.freeze
 
-RSpec.describe Console do
+RSpec.describe View do
   let(:current_subject) { described_class.new }
   let(:storage) { Storage.new }
   let(:account) { Account.new('Name', 'login', 'test', 23) }
   let(:card_operations) { CardOperations.new(storage, account) }
   let(:money_operations) { MoneyOperations.new(storage, account) }
-  let(:account_registration) { AccountRegistration.new(storage) }
-  let(:view) { View }
+  let(:account_registration) { AccountRegistration.new(storage, 'Name', 'login', 23, 'test') }
+  let(:view) { Output }
+  let(:account_connect) { AccountConnect.new }
 
   before do
-    stub_const('Storage::FILE', OVERRIDABLE_FILENAME)
+    stub_const('Storage::FILE', Helper::OVERRIDABLE_FILENAME)
   end
 
-  describe '#console' do
+  describe '#start' do
     context 'when correct method calling' do
       after do
-        current_subject.console
+        current_subject.start
+      end
+
+      before do
+        allow(current_subject).to receive(:call_main_menu)
       end
 
       it 'create account if input is create' do
-        allow($stdin).to receive_message_chain(:gets, :chomp) { 'create' }
-        expect(current_subject).to receive(:create)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create')
+        expect(current_subject).to receive(:create_account)
       end
 
       it 'load account if input is load' do
-        allow($stdin).to receive_message_chain(:gets, :chomp) { 'load' }
-        expect(current_subject).to receive(:load)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load')
+        expect(current_subject).to receive(:load_account)
       end
 
       it 'leave app if input is exit or some another word' do
-        allow($stdin).to receive_message_chain(:gets, :chomp) { 'another' }
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('another')
         expect(current_subject).to receive(:exit)
       end
     end
 
     context 'with correct outout' do
       it do
-        allow($stdin).to receive_message_chain(:gets, :chomp) { 'test' }
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('test')
         allow(current_subject).to receive(:exit)
-        HELLO_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
-        current_subject.console
+        HELLO_PHRASES.each { |phrase| expect(view).to receive(:puts).with(phrase) }
+        current_subject.start
       end
     end
   end
 
-  describe '#create' do
+  describe '#create_account' do
     let(:success_name_input) { 'Denis' }
     let(:success_age_input) { '72' }
     let(:success_login_input) { 'Denis' }
     let(:success_password_input) { 'Denis1993' }
-    let(:success_inputs) { [success_name_input, success_login_input, success_password_input, success_age_input] }
+    let(:success_inputs) { [success_name_input, success_login_input, success_age_input, success_password_input,] }
 
     context 'with success result' do
       before do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*success_inputs)
-        allow(current_subject).to receive(:main_menu)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *success_inputs)
+        allow(current_subject).to receive(:call_main_menu)
         allow(storage).to receive(:accounts).and_return([])
       end
 
       after do
-        File.delete(OVERRIDABLE_FILENAME) if File.exist?(OVERRIDABLE_FILENAME)
+        File.delete(Helper::OVERRIDABLE_FILENAME) if File.exist?(Helper::OVERRIDABLE_FILENAME)
       end
 
       it 'with correct outout' do
         allow(File).to receive(:open)
-        ASK_PHRASES.each_value { |phrase| expect(view).to receive(:puts).with(phrase) }
-        ACCOUNT_VALIDATION_PHRASES.values.map(&:values).each do |phrase|
+        Helper::ASK_PHRASES.each_value { |phrase| expect(view).to receive(:puts).with(phrase) }
+        Helper::ACCOUNT_VALIDATION_PHRASES.values.map(&:values).each do |phrase|
           expect(view).not_to receive(:puts).with(phrase)
         end
-        current_subject.create
+        current_subject.start
       end
 
       it 'write to file Account instance' do
-        # current_subject.instance_variable_set(:@storage, OVERRIDABLE_FILENAME) #TODO поменять на сторейдж класс, а не консоли
-        current_subject.create
-        expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
-        accounts = YAML.load_file(OVERRIDABLE_FILENAME)
+        current_subject.start
+        expect(File.exist?(Helper::OVERRIDABLE_FILENAME)).to be true
+        accounts = YAML.load_file(Helper::OVERRIDABLE_FILENAME)
         expect(accounts).to be_a Array
         expect(accounts.size).to be 1
         accounts.map { |account| expect(account).to be_a Account }
@@ -176,55 +181,59 @@ RSpec.describe Console do
       before do
         all_inputs = current_inputs + success_inputs
         allow(File).to receive(:open)
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
-        allow(current_subject).to receive(:main_menu)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *all_inputs)
+        allow(current_subject).to receive(:call_main_menu)
         allow(storage).to receive(:accounts).and_return([])
       end
 
       context 'with name errors' do
         context 'without small letter' do
           let(:error_input) { 'some_test_name' }
-          let(:error) { ACCOUNT_VALIDATION_PHRASES[:name][:first_letter] }
-          let(:current_inputs) { [error_input, success_login_input, success_password_input, success_age_input] }
+          let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:name][:first_letter] }
+          let(:current_inputs) { [error_input, success_login_input, success_age_input, success_password_input] }
 
-          it { expect { current_subject.create }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
         end
       end
 
       context 'with login errors' do
-        let(:current_inputs) { [success_name_input, error_input, success_password_input, success_age_input] }
+        let(:current_inputs) { [success_name_input, error_input, success_age_input, success_password_input] }
 
         context 'when present' do
           let(:error_input) { '' }
-          let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:present] }
+          let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:present] }
 
-          it { expect { current_subject.create }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
         end
 
         context 'when longer' do
           let(:error_input) { 'E' * 3 }
-          let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:longer] }
+          let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:longer] }
 
-          it { expect { current_subject.create }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
         end
 
         context 'when shorter' do
           let(:error_input) { 'E' * 21 }
-          let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:shorter] }
+          let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:shorter] }
 
-          it { expect { current_subject.create }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
         end
 
         context 'when exists' do
           let(:error_input) { 'Denis1345' }
-          let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:exists] }
+          let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:exists] }
 
           before do
-            allow(storage).to receive(:accounts) { [instance_double('Account', login: error_input)] }
-            current_subject.instance_variable_set(:@storage, storage)
+            allow(storage).to receive(:accounts).and_return([instance_double('Account', login: error_input)])
+            # allow(account_connect).to receive(:storage).and_return(storage)
+            # storage.instance_variable_set(:@accounts, [instance_double('Account', login: error_input)])
+            #
+            # account_connect.instance_variable_set(:@storage, storage)
+
           end
 
-          it { expect { current_subject.create }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
         end
       end
 
@@ -757,8 +766,8 @@ RSpec.describe Console do
                 new_balance = default_balance + correct_money_amount_greater_than_tax - custom_card.put_tax(correct_money_amount_greater_than_tax)
 
                 expect { current_subject.put_money }.to output(
-                  /Money #{correct_money_amount_greater_than_tax} was put on #{custom_card.number}. Balance: #{new_balance}. Tax: #{custom_card.put_tax(correct_money_amount_greater_than_tax)}/
-                ).to_stdout
+                                                          /Money #{correct_money_amount_greater_than_tax} was put on #{custom_card.number}. Balance: #{new_balance}. Tax: #{custom_card.put_tax(correct_money_amount_greater_than_tax)}/
+                                                        ).to_stdout
 
                 expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
                 file_accounts = YAML.load_file(OVERRIDABLE_FILENAME)

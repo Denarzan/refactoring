@@ -1,6 +1,9 @@
 require 'i18n'
 
 class AccountValidation
+
+  attr_reader :errors
+
   def initialize(storage)
     @errors = []
     @storage = storage
@@ -33,8 +36,8 @@ class AccountValidation
     @errors.empty?
   end
 
-  def show_errors
-    @errors.each { |e| puts e }
+  def clear_errors
     @errors = []
   end
+
 end

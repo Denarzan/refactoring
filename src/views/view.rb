@@ -1,132 +1,140 @@
-module View
-  class << self
-    def sign_in_error
-      puts I18n.t('sign_in.error')
-    end
+class View
+  include Input
+  include Output
+  include HelpView
+  include HelpOperations
+  include SendMoneyView
+  include WithdrawMoneyView
+  include PutMoneyView
 
-    def sign_in_login
-      puts I18n.t('sign_in.login')
-    end
+  def initialize
+    @account_operations = AccountConnect.new
+  end
 
-    def sign_in_password
-      puts I18n.t('sign_in.password')
+  def start
+    Output.multiline_output('console')
+    case fetch_input
+    when 'create' then fetch_account('create')
+    when 'load' then fetch_account('load')
+    else exit
     end
+  end
 
-    def registration_name
-      puts I18n.t('registration.name')
-    end
+  def call_main_menu
+    Output.menu_start(@account_operations.current_account.name)
+    user_input = fetch_input
+    command = @account_operations.chose_command(user_input)
+    command.nil? ? Output.menu_wrong_command : send(command)
+    call_main_menu
+  end
 
-    def registration_login
-      puts I18n.t('registration.login')
-    end
+  private
 
-    def registration_age
-      puts I18n.t('registration.age')
-    end
+  def create_card
+    Output.multiline_output('card.create')
+    card_type = fetch_input
+    return if card_type == 'exit'
 
-    def registration_password
-      puts I18n.t('registration.password')
-    end
+    @account_operations.card_operations.create_card_operation?(card_type) ? return : Output.card_wrong_type
 
-    def menu_start(name)
-      puts I18n.t('menu.start', name: name)
-    end
+    create_card
+  end
 
-    def menu_wrong_command
-      puts I18n.t('menu.wrong_command')
-    end
+  def destroy_card
+    show_user_cards(@account_operations.current_account, 'card.delete.offer', 'card.show_cards', 'card.exit') ? true : return
+    input = fetch_input
+    return if input == 'exit'
 
-    def delete_account
-      puts I18n.t('delete_account')
+    card = @account_operations.current_account.find_card(input)
+    if card.nil?
+      Output.card_wrong
+      return destroy_card
     end
+    @account_operations.card_operations.destroy_card_operation(card) if sure_to_delete_card?(card)
+  end
 
-    def no_active_accounts
-      puts I18n.t('registration.no_active_accounts')
-    end
+  def show_cards
+    cards = @account_operations.card_operations.show_cards_operation
+    return Output.no_cards if cards.nil?
 
-    def show_card(number, type)
-      puts "- #{number}, #{type}"
+    cards.each do |card|
+      Output.show_card(card.number, card.type)
     end
+  end
 
-    def card_delete(number)
-      puts I18n.t('card.delete.sure?', card: number)
-    end
+  def destroy_account
+    Output.delete_account
+    answer = fetch_input
+    @account_operations.storage.delete_account(@account_operations.current_account) if answer == 'y'
+    exit
+  end
 
-    def card_wrong_type
-      puts I18n.t('card.wrong_type')
-    end
+  def put_money
+    put_money_module(@account_operations)
+  end
 
-    def card_wrong
-      puts I18n.t('card.wrong')
-    end
+  def send_money
+    send_money_module(@account_operations)
+  end
 
-    def puts_message(message)
-      puts I18n.t(message)
-    end
+  def withdraw_money
+    withdraw_money_module(@account_operations)
+  end
 
-    def puts_cards(message, card, index)
-      puts I18n.t(message, card_number: card.number, card_type: card.type, index: index + 1)
-    end
+  def fetch_account(command)
+    command == 'create' ? create_account : load_account
+    call_main_menu
+  end
 
-    def no_cards
-      puts I18n.t('card.no_cards')
-    end
+  def create_account
+    data = @account_operations.create(name_input, login_input, age_input, password_input)
+    return unless data[0].nil?
 
-    def withdraw_success(card, amount)
-      puts I18n.t('card.withdraw.success', amount: amount, card: card.number,
-                                           money_left: card.balance, tax: card.withdraw_tax(amount.to_i))
-    end
+    # print data.inspect
+    data.delete_at(0)
+    # print data.inspect
 
-    def puts_money_success(card, amount)
-      puts I18n.t('card.put_money.success', amount: amount, card_number: card.number,
-                                            balance: card.balance, tax: card.put_tax(amount.to_i))
-    end
+    data.each { |error| puts error }
+    create_account
+  end
 
-    def send_money_success(recipient_card, sender_card, amount)
-      puts I18n.t('card.send_money.success', amount: amount, card_number: recipient_card.number,
-                                             balance: sender_card.balance, tax: sender_card.sender_tax(amount.to_i))
-      puts I18n.t('card.send_money.success', amount: amount, card_number: recipient_card.number,
-                                             balance: recipient_card.balance, tax: recipient_card.put_tax(amount.to_i))
-    end
+  def name_input
+    Output.registration_name
+    fetch_input
+  end
 
-    def withdraw_ammount
-      puts I18n.t('card.withdraw.amount')
-    end
+  def login_input
+    Output.registration_login
+    fetch_input
+  end
 
-    def put_money_amount
-      puts I18n.t('card.put_money.amount')
-    end
+  def age_input
+    Output.registration_age
+    fetch_input
+  end
 
-    def withdraw_amount
-      puts I18n.t('card.withdraw.amount')
-    end
+  def password_input
+    Output.registration_password
+    fetch_input
+  end
 
-    def withdraw_no_enough
-      puts I18n.t('card.withdraw.no_enough')
-    end
+  def load_account
+    return create_the_first_account if @account_operations.no_accounts?
 
-    def put_money_no_enough
-      puts I18n.t('card.put_money.no_enough')
-    end
+    Output.sign_in_login
+    login = fetch_input
+    Output.sign_in_password
+    password = fetch_input
+    load_account if @account_operations.load(login, password).nil?
+  end
 
-    def send_money_no_enough
-      puts I18n.t('card.send_money.no_enough')
-    end
+  def create_the_first_account
+    Output.no_active_accounts
+    fetch_input == 'y' ? create_account : start
+  end
 
-    def incorrect_card
-      puts I18n.t('card.incorrect')
-    end
-
-    def recipient_card
-      I18n.t('card.send_money.recipient_card')
-    end
-
-    def no_card_to_send(card_number)
-      puts I18n.t('card.send_money.no_card', card_number: card_number)
-    end
-
-    def incorrect_number_to_send
-      puts I18n.t('card.send_money.incorrect_number')
-    end
+  def sure_to_delete_card?(card)
+    Output.card_delete(card.number)
+    fetch_input == 'y'
   end
 end

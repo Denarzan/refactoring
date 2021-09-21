@@ -1,5 +1,5 @@
 class Account
-  attr_accessor :login, :name, :cards, :password
+  attr_accessor :login, :name, :cards, :password, :age
 
   def initialize(name, login, password, age)
     @name = name
