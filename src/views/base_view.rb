@@ -1,4 +1,10 @@
-module HelpView
+class BaseView
+
+  include HelpOperations
+  include Input
+
+  private
+
   def check_cards(account, chose_card)
     return :no_cards unless show_user_cards(account, chose_card, 'card.show_cards', 'card.exit')
 
@@ -22,5 +28,10 @@ module HelpView
     end
     Output.puts_message(exit_message)
     true
+  end
+
+  def sure_to_delete_card?(card)
+    Output.card_delete(card.number)
+    fetch_input == 'y'
   end
 end

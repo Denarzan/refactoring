@@ -1,11 +1,8 @@
 class View
-  include Input
-  include Output
-  include HelpView
-  include HelpOperations
-  include SendMoneyView
-  include WithdrawMoneyView
-  include PutMoneyView
+
+
+  MODULES = [Input, Output, HelpOperations].freeze
+  MODULES.each { |modul| include modul}
 
   def initialize
     @account_operations = AccountConnect.new
@@ -31,54 +28,32 @@ class View
   private
 
   def create_card
-    Output.multiline_output('card.create')
-    card_type = fetch_input
-    return if card_type == 'exit'
-
-    @account_operations.card_operations.create_card_operation?(card_type) ? return : Output.card_wrong_type
-
-    create_card
+    CreateCardView.new.create_card_module(@account_operations)
   end
 
   def destroy_card
-    show_user_cards(@account_operations.current_account, 'card.delete.offer', 'card.show_cards', 'card.exit') ? true : return
-    input = fetch_input
-    return if input == 'exit'
-
-    card = @account_operations.current_account.find_card(input)
-    if card.nil?
-      Output.card_wrong
-      return destroy_card
-    end
-    @account_operations.card_operations.destroy_card_operation(card) if sure_to_delete_card?(card)
+    DestroyCardView.new.destroy_card_module(@account_operations)
   end
 
   def show_cards
-    cards = @account_operations.card_operations.show_cards_operation
-    return Output.no_cards if cards.nil?
-
-    cards.each do |card|
-      Output.show_card(card.number, card.type)
-    end
+    ShowCardsView.new.show_cards_module(@account_operations)
   end
 
   def destroy_account
-    Output.delete_account
-    answer = fetch_input
-    @account_operations.storage.delete_account(@account_operations.current_account) if answer == 'y'
+    DestroyAccountView.new.destroy_account_module(@account_operations)
     exit
   end
 
   def put_money
-    put_money_module(@account_operations)
+    PutMoneyView.new.put_money_module(@account_operations)
   end
 
   def send_money
-    send_money_module(@account_operations)
+    SendMoneyView.new.send_money_module(@account_operations)
   end
 
   def withdraw_money
-    withdraw_money_module(@account_operations)
+    WithdrawMoneyView.new.withdraw_money_module(@account_operations)
   end
 
   def fetch_account(command)
@@ -134,10 +109,5 @@ class View
   def create_the_first_account
     Output.no_active_accounts
     fetch_input == 'y' ? create_account : start
-  end
-
-  def sure_to_delete_card?(card)
-    Output.card_delete(card.number)
-    fetch_input == 'y'
   end
 end
