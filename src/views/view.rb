@@ -125,7 +125,10 @@ class View
     login = fetch_input
     Output.sign_in_password
     password = fetch_input
-    load_account if @account_operations.load(login, password).nil?
+    return unless @account_operations.load(login, password).nil?
+
+    Output.sign_in_error
+    load_account
   end
 
   def create_the_first_account

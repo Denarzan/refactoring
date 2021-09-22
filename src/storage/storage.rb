@@ -23,8 +23,6 @@ class Storage
   end
 
   def find_account?(login, password)
-    puts login, password
-    puts @accounts.map { |a| { login: a.login, password: a.password } }.inspect
     @accounts.map { |a| { login: a.login, password: a.password } }.include?({ login: login, password: password })
   end
 
