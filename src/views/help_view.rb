@@ -1,12 +1,11 @@
-class BaseView
-
+class HelpView
   include HelpOperations
   include Input
 
   private
 
-  def check_cards(account, chose_card)
-    return :no_cards unless show_user_cards(account, chose_card, 'card.show_cards', 'card.exit')
+  def check_cards(account, chose_card_message)
+    return :no_cards unless show_user_cards(account, chose_card_message)
 
     input = fetch_input
     return :exit if input == 'exit'
@@ -18,15 +17,15 @@ class BaseView
     :card_wrong
   end
 
-  def show_user_cards(account, first_message, second_message, exit_message)
+  def show_user_cards(account, chose_card_message)
     return false unless card_exist?(account)
 
-    Output.puts_message(first_message)
+    Output.puts_message(chose_card_message)
 
     account.cards.each_with_index do |card, index|
-      Output.puts_cards(second_message, card, index)
+      Output.puts_cards('card.show_cards', card, index)
     end
-    Output.puts_message(exit_message)
+    Output.puts_message('card.exit')
     true
   end
 

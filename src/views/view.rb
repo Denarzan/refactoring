@@ -1,8 +1,6 @@
 class View
-
-
-  MODULES = [Input, Output, HelpOperations].freeze
-  MODULES.each { |modul| include modul}
+  include Input
+  include Output
 
   def initialize
     @account_operations = AccountConnect.new
@@ -28,15 +26,15 @@ class View
   private
 
   def create_card
-    CreateCardView.new.create_card_module(@account_operations)
+    CardView.new.create_card_module(@account_operations)
   end
 
   def destroy_card
-    DestroyCardView.new.destroy_card_module(@account_operations)
+    CardView.new.destroy_card_module(@account_operations)
   end
 
   def show_cards
-    ShowCardsView.new.show_cards_module(@account_operations)
+    CardView.new.show_cards_module(@account_operations)
   end
 
   def destroy_account
@@ -65,10 +63,7 @@ class View
     data = @account_operations.create(name_input, login_input, age_input, password_input)
     return unless data[0].nil?
 
-    # print data.inspect
     data.delete_at(0)
-    # print data.inspect
-
     data.each { |error| puts error }
     create_account
   end

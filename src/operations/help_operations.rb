@@ -1,6 +1,4 @@
 module HelpOperations
-  include Output
-
   private
 
   def card_exist?(account)

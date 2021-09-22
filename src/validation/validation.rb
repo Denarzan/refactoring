@@ -1,7 +1,6 @@
 require 'i18n'
 
 class AccountValidation
-
   attr_reader :errors
 
   def initialize(storage)
@@ -39,5 +38,4 @@ class AccountValidation
   def clear_errors
     @errors = []
   end
-
 end

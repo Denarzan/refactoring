@@ -1,5 +1,4 @@
-class DestroyAccountView < BaseView
-
+class DestroyAccountView < HelpView
   def destroy_account_module(account_operations)
     Output.delete_account
     answer = fetch_input

@@ -1,5 +1,4 @@
-class WithdrawMoneyView < BaseView
-
+class WithdrawMoneyView < HelpView
   def withdraw_money_module(account_operations)
     card = check_cards(account_operations.current_account, 'card.withdraw.chose')
     case card

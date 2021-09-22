@@ -7,10 +7,11 @@ require_relative '../cards/capitalist_card'
 require_relative '../cards/virtual_card'
 require_relative 'help_operations'
 
-CARD_TYPES = %w[usual capitalist virtual].freeze
 class CardOperations
   include HelpOperations
   include Output
+
+  CARD_TYPES = %w[usual capitalist virtual].freeze
 
   def initialize(storage, account)
     @storage = storage
@@ -49,5 +50,4 @@ class CardOperations
       false
     end
   end
-
 end

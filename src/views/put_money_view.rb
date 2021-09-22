@@ -1,5 +1,4 @@
-class PutMoneyView < BaseView
-
+class PutMoneyView < HelpView
   def put_money_module(account_operations)
     card = check_cards(account_operations.current_account, 'card.put_money.chose')
     case card
