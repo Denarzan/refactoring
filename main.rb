@@ -1,3 +1,2 @@
-require_relative 'account'
-
-Account.new.console
+require_relative 'src/banking'
+Banking::Views::View.new.run
