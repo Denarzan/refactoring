@@ -9,7 +9,7 @@ class AccountConnect
     'WM' => :withdraw_money,
     'SM' => :send_money,
     'DA' => :destroy_account,
-    'exit' => :exit
+    'exit' => :shutdown
   }.freeze
 
   def initialize

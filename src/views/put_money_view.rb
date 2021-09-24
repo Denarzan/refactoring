@@ -3,7 +3,7 @@ class PutMoneyView < HelpView
     card = check_cards(account_operations.current_account, 'card.put_money.chose')
     case card
     when :no_cards then Output.no_cards
-    when :exit then exit
+    when :exit then nil
     when :wrong_card then put_money(account_operations)
     else put_money_operation(card, account_operations)
     end

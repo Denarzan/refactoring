@@ -111,26 +111,27 @@ RSpec.describe View do
   describe '#start' do
     context 'when correct method calling' do
       after do
-        current_subject.start
-      end
-
-      before do
-        allow(current_subject).to receive(:call_main_menu)
+        current_subject.run
       end
 
       it 'create account if input is create' do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create')
-        expect(current_subject).to receive(:create_account)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', 'exit')
+        allow(account_connect).to receive(:create).and_return('test')
+        allow(account_connect).to receive_message_chain(:current_account, :name)
+        expect(view).to receive(:menu_start)
       end
 
       it 'load account if input is load' do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load')
-        expect(current_subject).to receive(:load_account)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', 'exit')
+        allow(account_connect).to receive(:no_accounts?).and_return(false)
+        allow(account_connect).to receive(:load).and_return(true)
+        allow(account_connect).to receive_message_chain(:current_account, :name)
+        expect(view).to receive(:menu_start)
       end
 
       it 'leave app if input is exit or some another word' do
         allow($stdin).to receive_message_chain(:gets, :chomp).and_return('another')
-        expect(current_subject).to receive(:exit)
+        expect(current_subject).to receive(:loop).once
       end
     end
 
@@ -153,8 +154,7 @@ RSpec.describe View do
 
     context 'with success result' do
       before do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *success_inputs)
-        allow(current_subject).to receive(:call_main_menu)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *success_inputs, 'exit')
         allow(storage).to receive(:accounts).and_return([])
       end
 
@@ -168,11 +168,11 @@ RSpec.describe View do
         Helper::ACCOUNT_VALIDATION_PHRASES.values.map(&:values).each do |phrase|
           expect(view).not_to receive(:puts).with(phrase)
         end
-        current_subject.start
+        current_subject.run
       end
 
       it 'write to file Account instance' do
-        current_subject.start
+        current_subject.run
         expect(File.exist?(Helper::OVERRIDABLE_FILENAME)).to be true
         accounts = YAML.load_file(Helper::OVERRIDABLE_FILENAME)
         expect(accounts).to be_a Array
@@ -185,8 +185,7 @@ RSpec.describe View do
       before do
         all_inputs = current_inputs + success_inputs
         allow(File).to receive(:open)
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *all_inputs)
-        allow(current_subject).to receive(:call_main_menu)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('create', *all_inputs, 'exit')
         allow(storage).to receive(:accounts).and_return([])
       end
 
@@ -196,7 +195,7 @@ RSpec.describe View do
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:name][:first_letter] }
           let(:current_inputs) { [error_input, success_login_input, success_age_input, success_password_input] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
       end
 
@@ -207,21 +206,21 @@ RSpec.describe View do
           let(:error_input) { '' }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:present] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'when longer' do
           let(:error_input) { 'E' * 3 }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:longer] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'when shorter' do
           let(:error_input) { 'E' * 21 }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:shorter] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'when exists' do
@@ -232,7 +231,7 @@ RSpec.describe View do
             allow_any_instance_of(Storage).to receive(:accounts).and_return([instance_double('Account', login: error_input)])
           end
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
       end
 
@@ -243,13 +242,13 @@ RSpec.describe View do
         context 'with length minimum' do
           let(:error_input) { '22' }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'with length maximum' do
           let(:error_input) { '91' }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
       end
 
@@ -260,21 +259,21 @@ RSpec.describe View do
           let(:error_input) { '' }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:password][:present] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'when longer' do
           let(:error_input) { 'E' * 5 }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:password][:longer] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
 
         context 'when shorter' do
           let(:error_input) { 'E' * 31 }
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:password][:shorter] }
 
-          it { expect { current_subject.start }.to output(/#{error}/).to_stdout }
+          it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
         end
       end
     end
@@ -283,11 +282,10 @@ RSpec.describe View do
   describe '#load_account' do
     context 'without active accounts' do
       it do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load')
-        allow(current_subject).to receive(:call_main_menu)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', 'exit')
         allow(account_connect.instance_variable_get(:@storage)).to receive(:accounts).and_return([])
-        expect(current_subject).to receive(:create_the_first_account)
-        current_subject.start
+        expect(view).to receive(:no_active_accounts)
+        current_subject.run
       end
     end
 
@@ -298,7 +296,7 @@ RSpec.describe View do
       let(:age) { 1 }
 
       before do
-        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', *all_inputs)
+        allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', *all_inputs, 'exit')
         allow(storage).to receive(:accounts).and_return([Account.new(name, login, password, age)])
         account_connect.instance_variable_set(:@storage, storage)
         storage.instance_variable_set(:@accounts, [Account.new(name, login, password, age)])
@@ -310,11 +308,11 @@ RSpec.describe View do
         it do
           allow(account_connect).to receive(:no_accounts?).and_return(false)
           allow(view).to receive(:multiline_output)
-          allow(current_subject).to receive(:call_main_menu)
+          allow(view).to receive(:menu_start)
           [ASK_PHRASES[:login], ASK_PHRASES[:password]].each do |phrase|
             expect(view).to receive(:puts).with(phrase)
           end
-          current_subject.start
+          current_subject.run
         end
       end
 
@@ -322,8 +320,7 @@ RSpec.describe View do
         let(:all_inputs) { [login, password] }
 
         it do
-          allow(current_subject).to receive(:call_main_menu)
-          expect { current_subject.start }.not_to output(/#{ERROR_PHRASES[:user_not_exists]}/).to_stdout
+          expect { current_subject.run }.not_to output(/#{ERROR_PHRASES[:user_not_exists]}/).to_stdout
         end
       end
 
@@ -331,8 +328,7 @@ RSpec.describe View do
         let(:all_inputs) { ['test', 'test', login, password] }
 
         it do
-          expect(current_subject).to receive(:call_main_menu)
-          expect { current_subject.start }.to output(/#{ERROR_PHRASES[:user_not_exists]}/).to_stdout
+          expect { current_subject.run }.to output(/#{ERROR_PHRASES[:user_not_exists]}/).to_stdout
         end
       end
     end
@@ -343,19 +339,20 @@ RSpec.describe View do
     let(:success_input) { 'y' }
 
     it 'with correct outout' do
-      allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', success_input)
-      allow(current_subject).to receive(:create_account)
-      allow(current_subject).to receive(:call_main_menu)
+      allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', 'exit')
       allow(view).to receive(:multiline_output)
+      allow(account_connect.instance_variable_get(:@storage)).to receive(:accounts).and_return([])
 
-      expect { current_subject.start }.to output(COMMON_PHRASES[:create_first_account]).to_stdout
+      expect { current_subject.run }.to output(COMMON_PHRASES[:create_first_account]).to_stdout
     end
 
     it 'calls create if user inputs is y' do
-      allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', success_input)
-      allow(current_subject).to receive(:call_main_menu)
-      expect(current_subject).to receive(:create_account)
-      current_subject.start
+      allow($stdin).to receive_message_chain(:gets, :chomp).and_return('load', success_input, 'exit')
+      allow(view).to receive(:multiline_output)
+      allow(account_connect).to receive_message_chain(:current_account, :name)
+      allow(account_connect).to receive(:create).and_return('success')
+      expect(view).to receive(:menu_start)
+      current_subject.run
     end
 
     it 'calls console if user inputs is not y' do
@@ -376,7 +373,7 @@ RSpec.describe View do
         'WM' => :withdraw_money,
         'SM' => :send_money,
         'DA' => :destroy_account,
-        'exit' => :exit
+        'exit' => :shutdown
       }
     end
 
@@ -389,16 +386,12 @@ RSpec.describe View do
 
       it do
         expect { current_subject.call_main_menu }.to output(/Welcome, #{name}/).to_stdout
-      rescue SystemExit
-        #Ignore
         end
       it do
         Helper::MAIN_OPERATIONS_TEXTS.each do |text|
           allow($stdin).to receive_message_chain(:gets, :chomp).and_return('SC', 'exit')
           expect { current_subject.call_main_menu }.to output(/#{text}/).to_stdout
         end
-      rescue SystemExit
-        #Ignore
       end
     end
 
@@ -409,20 +402,16 @@ RSpec.describe View do
         allow(account_connect).to receive(:current_account).and_return(instance_double('Account', name: name))
 
         commands.each do |command, method_name|
-          expect(current_subject).to receive(method_name)
-          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(command, 'exit')
+          expect(method_name).to eq(AccountConnect::COMMANDS[command])
+          allow($stdin).to receive_message_chain(:gets, :chomp).and_return(command)
           current_subject.call_main_menu
         end
-      rescue SystemExit
-        #Ignore
       end
 
       it 'outputs incorrect message on undefined command' do
         allow(account_connect).to receive(:current_account).and_return(instance_double('Account', name: name))
         allow($stdin).to receive_message_chain(:gets, :chomp).and_return(undefined_command, 'exit')
         expect { current_subject.call_main_menu }.to output(/#{ERROR_PHRASES[:wrong_command]}/).to_stdout
-      rescue SystemExit
-        #Ignore
       end
     end
   end
@@ -614,7 +603,6 @@ RSpec.describe View do
 
         it do
           allow($stdin).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
-          puts account_connect.current_account.inspect
           expect { card_view.destroy_card_module(account_connect) }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
 
@@ -685,23 +673,18 @@ RSpec.describe View do
       context 'with correct outout' do
         it do
           allow($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
-          puts account_connect.current_account.inspect
           expect { put_money_view.put_money_module(account_connect) }.to output(/#{COMMON_PHRASES[:choose_card]}/).to_stdout
           fake_cards.each_with_index do |card, i|
             message = /- #{card.number}, #{card.type}, press #{i + 1}/
             expect { put_money_view.put_money_module(account_connect) }.to output(message).to_stdout
           end
-        rescue SystemExit
-          # Ignored
         end
       end
 
       context 'when exit if first gets is exit' do
         it do
           allow($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
-          expect(put_money_view.put_money_module(account_connect)).to receive(:exit)
-        rescue SystemExit
-          # Ignored
+          expect(put_money_view.put_money_module(account_connect)).to be_nil
         end
       end
 
@@ -829,8 +812,6 @@ RSpec.describe View do
             message = /- #{card.number}, #{card.type}, press #{i + 1}/
             expect { withdraw_money.withdraw_money_module(account_connect) }.to output(message).to_stdout
           end
-        rescue SystemExit
-          # Ignored
         end
       end
 
@@ -840,9 +821,8 @@ RSpec.describe View do
           account_connect.instance_variable_set(:@current_account, account)
           account_connect.instance_variable_set(:@money_operations, money_operations)
           allow($stdin).to receive_message_chain(:gets, :chomp) { 'exit' }
-          expect(withdraw_money.withdraw_money_module(account_connect)).to receive(:exit)
-        rescue SystemExit
-          # Ignored
+          expect(withdraw_money.withdraw_money_module(account_connect)).to be_nil
+
         end
       end
 
