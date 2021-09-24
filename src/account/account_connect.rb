@@ -15,7 +15,7 @@ module Banking
       }.freeze
 
       def initialize
-        @storage = Storage.new
+        @storage = Storage::Storage.new
       end
 
       def create(name, login, age, password)
@@ -47,8 +47,8 @@ module Banking
       private
 
       def create_operations
-        @card_operations = CardOperations.new(@storage, @current_account)
-        @money_operations = MoneyOperations.new(@storage, @current_account)
+        @card_operations = Operations::Card.new(@storage, @current_account)
+        @money_operations = Operations::Money.new(@storage, @current_account)
       end
     end
   end

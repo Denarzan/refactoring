@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class DestroyAccountView < HelpView
       def destroy_account_module(account_operations)
         Output.delete_account

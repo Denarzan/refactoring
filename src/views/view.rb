@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class View
       include Input
       include Output
@@ -8,7 +8,7 @@ module Banking
                        load: :load_account }.freeze
 
       def initialize(state = :start)
-        @account_operations = Banking::Account::AccountConnect.new
+        @account_operations = Account::AccountConnect.new
         @state = state
       end
 
@@ -36,37 +36,37 @@ module Banking
       private
 
       def create_card
-        View::CardView.new.create_card_module(@account_operations)
+        CardView.new.create_card_module(@account_operations)
         @state = :call_main_menu
       end
 
       def destroy_card
-        View::CardView.new.destroy_card_module(@account_operations)
+        CardView.new.destroy_card_module(@account_operations)
         @state = :call_main_menu
       end
 
       def show_cards
-        View::CardView.new.show_cards_module(@account_operations)
+        CardView.new.show_cards_module(@account_operations)
         @state = :call_main_menu
       end
 
       def destroy_account
-        View::DestroyAccountView.new.destroy_account_module(@account_operations)
+        DestroyAccountView.new.destroy_account_module(@account_operations)
         @state = :shutdown
       end
 
       def put_money
-        View::PutMoneyView.new.put_money_module(@account_operations)
+        PutMoneyView.new.put_money_module(@account_operations)
         @state = :call_main_menu
       end
 
       def send_money
-        View::SendMoneyView.new.send_money_module(@account_operations)
+        SendMoneyView.new.send_money_module(@account_operations)
         @state = :call_main_menu
       end
 
       def withdraw_money
-        View::WithdrawMoneyView.new.withdraw_money_module(@account_operations)
+        WithdrawMoneyView.new.withdraw_money_module(@account_operations)
         @state = :call_main_menu
       end
 

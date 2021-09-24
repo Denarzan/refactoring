@@ -1,18 +1,18 @@
-RSpec.describe Banking::View::View do
+RSpec.describe Banking::Views::View do
   let(:current_subject) { described_class.new }
-  let(:storage) { Banking::Storage.new }
+  let(:storage) { Banking::Storage::Storage.new }
   let(:account) { Banking::Account::Account.new('Name', 'login', 'test', 23) }
-  let(:card_operations) { Banking::CardOperations.new(storage, account) }
-  let(:money_operations) { Banking::MoneyOperations.new(storage, account) }
+  let(:card_operations) { Banking::Operations::Card.new(storage, account) }
+  let(:money_operations) { Banking::Operations::Money.new(storage, account) }
   let(:account_registration) { Banking::Account::AccountRegistration.new(storage, 'Name', 'login', 23, 'test') }
   let(:view) { Banking::Output }
   let(:account_connect) { Banking::Account::AccountConnect.new }
-  let(:card_view) { Banking::View::CardView.new }
-  let(:put_money_view) { Banking::View::PutMoneyView.new }
-  let(:withdraw_money) { Banking::View::WithdrawMoneyView.new }
+  let(:card_view) { Banking::Views::CardView.new }
+  let(:put_money_view) { Banking::Views::PutMoneyView.new }
+  let(:withdraw_money) { Banking::Views::WithdrawMoneyView.new }
 
   before do
-    stub_const('Storage::FILE', Helper::OVERRIDABLE_FILENAME)
+    stub_const('Banking::Storage::Storage::FILE', Helper::OVERRIDABLE_FILENAME)
     allow(Banking::Account::AccountConnect).to receive(:new).and_return(account_connect)
   end
 
@@ -85,7 +85,7 @@ RSpec.describe Banking::View::View do
         accounts = YAML.load_file(Helper::OVERRIDABLE_FILENAME)
         expect(accounts).to be_a Array
         expect(accounts.size).to be 1
-        accounts.map { |account| expect(account).to be_a Account::Account }
+        accounts.map { |account| expect(account).to be_a Banking::Account::Account }
       end
     end
 
@@ -136,7 +136,7 @@ RSpec.describe Banking::View::View do
           let(:error) { Helper::ACCOUNT_VALIDATION_PHRASES[:login][:exists] }
 
           before do
-            allow_any_instance_of(Storage).to receive(:accounts).and_return([instance_double('Account::Account', login: error_input)])
+            allow_any_instance_of(Banking::Storage::Storage).to receive(:accounts).and_return([instance_double('Account::Account', login: error_input)])
           end
 
           it { expect { current_subject.run }.to output(/#{error}/).to_stdout }
@@ -325,7 +325,7 @@ RSpec.describe Banking::View::View do
   end
 
   describe '#destroy_account' do
-    let(:destroy_account) { Banking::View::DestroyAccountView.new }
+    let(:destroy_account) { Banking::Views::DestroyAccountView.new }
     let(:cancel_input) { 'sdfsdfs' }
     let(:name) { 'Petro' }
     let(:success_input) { 'y' }
@@ -387,7 +387,7 @@ RSpec.describe Banking::View::View do
 
     it 'display cards if there are any' do
       allow(account_connect).to receive(:card_operations).and_return(card_operations)
-      allow_any_instance_of(Account::Account).to receive(:cards).and_return(cards)
+      allow_any_instance_of(Banking::Account::Account).to receive(:cards).and_return(cards)
       cards.each { |card| expect(view).to receive(:puts).with("- #{card.number}, #{card.type}") }
 
       card_view.show_cards_module(account_connect)

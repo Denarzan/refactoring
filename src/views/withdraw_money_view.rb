@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class WithdrawMoneyView < HelpView
       def withdraw_money_module(account_operations)
         card = check_cards(account_operations.current_account, 'card.withdraw.chose')

@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class HelpView
       include HelpOperations
       include Input

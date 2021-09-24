@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class SendMoneyView < HelpView
       def send_money_module(account_operations)
         sender_card = check_cards(account_operations.current_account, 'card.withdraw.chose')

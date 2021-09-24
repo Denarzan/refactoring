@@ -1,7 +1,6 @@
 module Banking
   module Account
     class AccountRegistration
-
       def initialize(storage, name, login, age, password)
         @validator = Validation::Account.new(storage)
         @name = name

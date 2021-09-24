@@ -1,5 +1,5 @@
 module Banking
-  module View
+  module Views
     class CardView < HelpView
       def create_card_module(account_operations)
         Output.multiline_output('card.create')
