@@ -1,2 +1,2 @@
 require_relative 'src/banking'
-Banking::View::View.new.run
+Banking::Views::View.new.run
