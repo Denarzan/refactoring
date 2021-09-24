@@ -1,9 +1,11 @@
-module HelpOperations
-  private
+module Banking
+  module HelpOperations
+    private
 
-  def card_exist?(account)
-    return true if account.cards.any?
+    def card_exist?(account)
+      return true if account.cards.any?
 
-    false
+      false
+    end
   end
 end

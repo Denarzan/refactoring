@@ -1,11 +1,11 @@
 require 'simplecov'
 require 'undercover'
-require 'i18n'
+
 SimpleCov.start do
   add_filter(%r{/spec/})
 end
 
-require_relative '../src/require_files'
+require_relative '../src/banking'
 require_relative 'helper'
 
 RSpec.configure do |config|

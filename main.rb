@@ -1,2 +1,2 @@
-require_relative 'src/require_files'
-View.new.run
+require_relative 'src/banking'
+Banking::View::View.new.run
